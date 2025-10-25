@@ -3,6 +3,7 @@ import PageProfile from '@/pages/PageProfile.vue'
 import PageReports from '@/pages/PageReports.vue'
 import PageSettings from '@/pages/PageSettings.vue'
 import PageShipments from '@/pages/PageShipments.vue'
+import PageShipment from '@/pages/PageShipment.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
@@ -17,6 +18,11 @@ const router = createRouter({
       path: '/shipments',
       name: 'shipments',
       component: PageShipments,
+    },
+    {
+      path: '/shipments/:id',
+      name: 'shipment',
+      component: PageShipment,
     },
     {
       path: '/reports',
