@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import SideBarNav from './SideBarNav.vue'
+import { useHotkey } from 'vuetify'
 
 const open = ref(false)
+
+useHotkey('s', () => {
+  open.value = !open.value
+})
 
 const navItems = {
   top: [
