@@ -1,6 +1,8 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
+import './assets/style/main.css'
+
 import 'vuetify/styles'
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
@@ -27,6 +29,17 @@ const vuetify = createVuetify({
     aliases,
     sets: {
       fa,
+    },
+  },
+  theme: {
+    themes: {
+      light: {
+        dark: false,
+        colors: {
+          primary: '#fbba00',
+          secondary: '#0b3d91',
+        },
+      },
     },
   },
 })
