@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import SideBarNav from './SideBarNav.vue'
 import { useHotkey } from 'vuetify'
+import { useSidebarStore } from '@/stores/sidebar'
+import { storeToRefs } from 'pinia'
 
-const open = ref(false)
+const store = useSidebarStore()
+const { open } = storeToRefs(store)
+const { toggle } = store
 
 useHotkey('s', () => {
-  open.value = !open.value
+  toggle()
 })
 
 const navItems = {
@@ -24,7 +27,7 @@ const navItems = {
 
 <template>
   <aside :class="['sidebar', { 'sidebar--open': open }]">
-    <button class="sidebar__toggle" @click="open = !open">
+    <button class="sidebar__toggle" @click="toggle">
       <VIcon v-if="open" icon="fa-angle-left" />
       <VIcon v-else icon="fa-angle-right" />
     </button>
