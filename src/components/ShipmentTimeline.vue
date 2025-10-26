@@ -122,8 +122,8 @@ const truckPositionKm = computed(() => {
 
       <VSlider
         v-model="simulatedTimeMinutes"
-        :min="0"
-        :max="1440"
+        :min="360"
+        :max="1080"
         :step="1"
         color="secondary"
         hide-details
