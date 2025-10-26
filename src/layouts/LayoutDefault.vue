@@ -1,5 +1,29 @@
 <script setup lang="ts">
 import SideBar from '@/components/SideBar.vue'
+import { useRoute, useRouter } from 'vue-router'
+import { computed } from 'vue'
+import { onMounted } from 'vue'
+
+const route = useRoute()
+
+const breadcrumbs = computed(() => {
+  return route.matched.reduce<{ title: string; to: string }[]>((acc, curr) => {
+    if (!curr.meta.breadcrumb) return acc
+
+    acc.push({
+      title: curr.meta.breadcrumb as string,
+      to: curr.path,
+    })
+
+    return acc
+  }, [])
+})
+
+onMounted(() => {
+  if (route.path === '/') {
+    useRouter().push('/dashboard')
+  }
+})
 </script>
 
 <template>
@@ -7,10 +31,14 @@ import SideBar from '@/components/SideBar.vue'
     <SideBar />
 
     <main class="main">
-      <header class="top-bar">Shipment Journey</header>
+      <header class="top-bar">
+        <div class="top-bar__content">
+          <VBreadcrumbs :items="breadcrumbs" />
+        </div>
+      </header>
 
       <div class="content">
-        <slot />
+        <RouterView />
       </div>
     </main>
   </div>
@@ -23,6 +51,10 @@ import SideBar from '@/components/SideBar.vue'
   font-family: Arial, sans-serif;
 }
 
+.top-bar {
+  display: none;
+}
+
 .main {
   flex: 1;
   display: flex;
@@ -30,14 +62,21 @@ import SideBar from '@/components/SideBar.vue'
 }
 
 .top-bar {
-  height: 60px;
   background-color: #ecf0f1;
-  padding: 0 20px;
+  padding: 10px 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.top-bar__content {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.top-bar__title {
   font-size: 18px;
   font-weight: bold;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin: 0;
 }
 
 .content {
@@ -45,5 +84,11 @@ import SideBar from '@/components/SideBar.vue'
   padding: 20px;
   background-color: #f9f9f9;
   overflow-y: auto;
+}
+
+@media (min-width: 576px) {
+  .top-bar {
+    display: block;
+  }
 }
 </style>

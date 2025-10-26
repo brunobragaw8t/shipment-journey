@@ -14,7 +14,7 @@ useHotkey('s', () => {
 
 const navItems = {
   top: [
-    { key: 1, label: 'Dashboard', icon: 'fa-user', route: '/' },
+    { key: 1, label: 'Dashboard', icon: 'fa-user', route: '/dashboard' },
     { key: 2, label: 'Shipments', icon: 'fa-truck', route: '/shipments' },
     { key: 3, label: 'Reports', icon: 'fa-chart-bar', route: '/reports' },
   ],

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { Shipment } from '@/api/shipments'
 import { shipmentsApi } from '@/api/shipments'
-import LayoutDefault from '@/layouts/LayoutDefault.vue'
 import { onMounted } from 'vue'
 import { ref } from 'vue'
 import { computed } from 'vue'
@@ -71,54 +70,52 @@ const arrivalTime = computed(() => {
 </script>
 
 <template>
-  <LayoutDefault>
-    <div class="d-flex justify-center" v-if="loading">
-      <VProgressCircular indeterminate />
+  <div class="d-flex justify-center" v-if="loading">
+    <VProgressCircular indeterminate />
+  </div>
+
+  <VEmptyState
+    v-else-if="error"
+    headline="Whoops, 404"
+    title="Page not found"
+    text="The page you were looking for does not exist"
+    action-text="Return to shipments"
+    @click:action="() => router.replace({ name: 'shipments' })"
+  />
+
+  <template v-else>
+    <h1 class="mb-4">Shipment details</h1>
+
+    <div class="detail-cards">
+      <VCard>
+        <VCardTitle>Journey distance</VCardTitle>
+        <VCardText class="text-h6 font-weight-bold text-secondary">
+          {{ totalDistance }} Km
+        </VCardText>
+      </VCard>
+
+      <VCard>
+        <VCardTitle>Estimated duration</VCardTitle>
+        <VCardText class="text-h6 font-weight-bold text-secondary">
+          {{ totalDuration.formatted }}
+        </VCardText>
+      </VCard>
+
+      <VCard>
+        <VCardTitle>Starting time</VCardTitle>
+        <VCardText class="text-h6 font-weight-bold text-secondary">
+          {{ startingTime }}
+        </VCardText>
+      </VCard>
+
+      <VCard>
+        <VCardTitle>Expected arrival time</VCardTitle>
+        <VCardText class="text-h6 font-weight-bold text-secondary">
+          {{ arrivalTime }}
+        </VCardText>
+      </VCard>
     </div>
-
-    <VEmptyState
-      v-else-if="error"
-      headline="Whoops, 404"
-      title="Page not found"
-      text="The page you were looking for does not exist"
-      action-text="Return to shipments"
-      @click:action="() => router.push({ name: 'shipments' })"
-    />
-
-    <template v-else>
-      <h1 class="mb-4">Shipment details</h1>
-
-      <div class="detail-cards">
-        <VCard>
-          <VCardTitle>Journey distance</VCardTitle>
-          <VCardText class="text-h6 font-weight-bold text-secondary">
-            {{ totalDistance }} Km
-          </VCardText>
-        </VCard>
-
-        <VCard>
-          <VCardTitle>Estimated duration</VCardTitle>
-          <VCardText class="text-h6 font-weight-bold text-secondary">
-            {{ totalDuration.formatted }}
-          </VCardText>
-        </VCard>
-
-        <VCard>
-          <VCardTitle>Starting time</VCardTitle>
-          <VCardText class="text-h6 font-weight-bold text-secondary">
-            {{ startingTime }}
-          </VCardText>
-        </VCard>
-
-        <VCard>
-          <VCardTitle>Expected arrival time</VCardTitle>
-          <VCardText class="text-h6 font-weight-bold text-secondary">
-            {{ arrivalTime }}
-          </VCardText>
-        </VCard>
-      </div>
-    </template>
-  </LayoutDefault>
+  </template>
 </template>
 
 <style scoped lang="scss">

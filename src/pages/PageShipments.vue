@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import LayoutDefault from '@/layouts/LayoutDefault.vue'
 import { ref, onMounted } from 'vue'
 import { type Shipment, shipmentsApi } from '@/api/shipments'
 
@@ -29,19 +28,17 @@ onMounted(async () => {
 </script>
 
 <template>
-  <LayoutDefault>
-    <h1 class="mb-4">Shipments</h1>
+  <h1 class="mb-4">Shipments</h1>
 
-    <VDataTable :headers="headers" :items="items" :loading="itemsLoading">
-      <template #loading>
-        <VSkeletonLoader type="table-row@10" />
-      </template>
+  <VDataTable :headers="headers" :items="items" :loading="itemsLoading">
+    <template #loading>
+      <VSkeletonLoader type="table-row@10" />
+    </template>
 
-      <template #item.actions="{ item }">
-        <RouterLink :to="`/shipments/${item.id}`">
-          <VBtn icon="fa-eye" variant="outlined" color="secondary" size="x-small" />
-        </RouterLink>
-      </template>
-    </VDataTable>
-  </LayoutDefault>
+    <template #item.actions="{ item }">
+      <RouterLink :to="`/shipments/${item.id}`">
+        <VBtn icon="fa-eye" variant="outlined" color="secondary" size="x-small" />
+      </RouterLink>
+    </template>
+  </VDataTable>
 </template>
