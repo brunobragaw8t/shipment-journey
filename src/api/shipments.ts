@@ -1,13 +1,15 @@
+export type ShipmentPoint = {
+  id: number
+  name: string
+  distanceFromPreviousKm: number
+  stopDurationMin: number
+}
+
 export type Shipment = {
   id: number
   product: string
   status: string
-  path: {
-    id: number
-    name: string
-    distanceFromPreviousKm: number
-    stopDurationMin: number
-  }[]
+  path: ShipmentPoint[]
   truckVelocityKmH: number
   startingTime: Date
 }

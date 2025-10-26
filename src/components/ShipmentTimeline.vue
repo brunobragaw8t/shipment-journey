@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Shipment } from '@/api/shipments'
+import type { Shipment, ShipmentPoint } from '@/api/shipments'
 import { ref, computed } from 'vue'
 import { SHIPMENT_STATUSES, type ShipmentStatus } from '@/constants/shipment-statuses'
 import { getShipmentTotals } from '@/utils/shipments'
@@ -15,7 +15,7 @@ const simulatedTime = computed(() => {
 
 const startingTimeMinutes =
   shipment.startingTime.getHours() * 60 + shipment.startingTime.getMinutes()
-const { totalDurationMinutes } = getShipmentTotals(shipment)
+const { totalDurationMinutes, totalDistanceKm } = getShipmentTotals(shipment)
 const arrivalTimeMinutes = startingTimeMinutes + totalDurationMinutes
 
 const timeline: Record<number, ShipmentStatus> = {}
@@ -31,6 +31,16 @@ for (const step of shipment.path) {
   }
 
   timeline[time] = SHIPMENT_STATUSES.inTransit
+}
+
+const pointPositions: Record<number, ShipmentPoint> = {}
+let position = 0
+for (const point of shipment.path) {
+  if (point.distanceFromPreviousKm > 0) {
+    position += (point.distanceFromPreviousKm / totalDistanceKm) * 100
+  }
+
+  pointPositions[position] = point
 }
 
 const status = computed(() => {
@@ -72,6 +82,55 @@ const status = computed(() => {
       <template #append>
         <VChip :color="status.color" :text="status.label" variant="elevated" />
       </template>
+
+      <template #text>
+        <div class="visual-timeline">
+          <div class="visual-timeline__line"></div>
+
+          <div
+            v-for="(point, position) in pointPositions"
+            :key="point.id"
+            class="visual-timeline__point"
+            :style="{ left: `${position}%` }"
+          >
+            <label>{{ point.name }}</label>
+          </div>
+        </div>
+      </template>
     </VCard>
   </div>
 </template>
+
+<style scoped lang="scss">
+$timeline_spacer: 2rem;
+
+.visual-timeline {
+  position: relative;
+  margin: $timeline_spacer;
+
+  &__line {
+    border-bottom: 0.125rem solid rgba(0, 0, 0, 0.1);
+  }
+
+  &__point {
+    position: absolute;
+    top: 100%;
+    transform: translateX(-50%);
+    margin-top: -1px;
+    line-height: $timeline_spacer;
+    white-space: nowrap;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 50%;
+      transform: translateX(50%) translateY(-50%);
+      border-radius: 100%;
+      width: 0.5rem;
+      height: 0.5rem;
+      background-color: var(--color-secondary);
+    }
+  }
+}
+</style>
