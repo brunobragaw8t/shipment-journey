@@ -8,6 +8,7 @@ import {
   getShipmentPointPositions,
 } from '@/utils/shipments'
 import { calcTravelMinutes, formatMinutesToTime } from '@/utils/time'
+import { formatDuration } from '@/utils/time'
 
 const { shipment } = defineProps<{ shipment: Shipment }>()
 
@@ -41,10 +42,22 @@ const status = computed(() => {
 
 const pointPositions = getShipmentPointPositions(startingTimeMinutes, totalDistanceKm, shipment)
 
-const truckPositionPercent = computed(() => {
-  if (simulatedTimeMinutes.value < startingTimeMinutes) return 0
+const truck = computed(() => {
+  if (simulatedTimeMinutes.value < startingTimeMinutes) {
+    return {
+      positionPercent: 0,
+      positionKm: 0,
+      timeRemainingMinutes: 0,
+    }
+  }
 
-  if (simulatedTimeMinutes.value >= arrivalTimeMinutes) return 100
+  if (simulatedTimeMinutes.value >= arrivalTimeMinutes) {
+    return {
+      positionPercent: 100,
+      positionKm: totalDistanceKm,
+      timeRemainingMinutes: 0,
+    }
+  }
 
   let accTimeMinutes = startingTimeMinutes
   let accDistanceKm = 0
@@ -58,7 +71,11 @@ const truckPositionPercent = computed(() => {
       simulatedTimeMinutes.value >= accTimeMinutes &&
       simulatedTimeMinutes.value < stopEndTimeMinutes
     ) {
-      return (accDistanceKm / totalDistanceKm) * 100
+      return {
+        positionPercent: Math.floor((accDistanceKm / totalDistanceKm) * 100),
+        positionKm: Math.floor(accDistanceKm),
+        timeRemainingMinutes: Math.floor(stopEndTimeMinutes - simulatedTimeMinutes.value),
+      }
     }
     accTimeMinutes = stopEndTimeMinutes
 
@@ -78,18 +95,24 @@ const truckPositionPercent = computed(() => {
       const progressBetweenPointsKm =
         progressBetweenPointsMinutes * nextPoint.distanceFromPreviousKm
 
-      return ((accDistanceKm + progressBetweenPointsKm) / totalDistanceKm) * 100
+      accDistanceKm += progressBetweenPointsKm
+
+      return {
+        positionPercent: Math.floor((accDistanceKm / totalDistanceKm) * 100),
+        positionKm: Math.floor(accDistanceKm),
+        timeRemainingMinutes: Math.floor(travelEndTimeMinutes - simulatedTimeMinutes.value),
+      }
     }
 
     accDistanceKm += nextPoint.distanceFromPreviousKm
     accTimeMinutes += travelDurationMinutes
   }
 
-  return 100
-})
-
-const truckPositionKm = computed(() => {
-  return Math.floor((truckPositionPercent.value * totalDistanceKm) / 100)
+  return {
+    positionPercent: 100,
+    positionKm: totalDistanceKm,
+    timeRemainingMinutes: 0,
+  }
 })
 </script>
 
@@ -117,8 +140,17 @@ const truckPositionKm = computed(() => {
 
       <template #text>
         <div class="visual-timeline">
-          <div class="visual-timeline__truck" :style="{ left: `${truckPositionPercent}%` }">
-            <span>{{ truckPositionKm }} Km</span>
+          <div class="visual-timeline__truck" :style="{ left: `${truck.positionPercent}%` }">
+            <span>{{ truck.positionKm }} Km</span>
+
+            <span v-if="status.label === 'In transit'">
+              Time to next stop: {{ formatDuration(truck.timeRemainingMinutes) }}
+            </span>
+
+            <span v-if="status.label === 'Stopped'">
+              Time to resume: {{ formatDuration(truck.timeRemainingMinutes) }}
+            </span>
+
             <VIcon icon="fa-truck" />
           </div>
 
@@ -144,7 +176,7 @@ $timeline_spacer: 2rem;
 
 .visual-timeline {
   position: relative;
-  margin: $timeline_spacer * 1.5 $timeline_spacer;
+  margin: $timeline_spacer * 2 $timeline_spacer $timeline_spacer * 1.5;
 
   &__truck {
     position: absolute;
