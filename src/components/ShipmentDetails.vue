@@ -1,33 +1,13 @@
 <script setup lang="ts">
 import type { Shipment } from '@/api/shipments'
+import { getShipmentTotals } from '@/utils/shipments'
 import { computed } from 'vue'
 import { useDate } from 'vuetify'
+import { formatDuration } from '@/utils/time'
 
 const { shipment } = defineProps<{ shipment: Shipment }>()
 
-// In my opinion we shouldn't be calculating this stuff on the frontend.
-// It was done here for the sake of this exercise.
-
-const totalDistance = computed(() => {
-  if (!shipment) return 0
-  return shipment.path.reduce((acc, point) => acc + point.distanceFromPreviousKm, 0)
-})
-
-const totalDuration = computed(() => {
-  if (!shipment) return { raw: 0, formatted: '0h 0m' }
-
-  const travelDuration = (totalDistance.value / shipment.truckVelocityKmH) * 60
-  const stopsDuration = shipment.path.reduce((acc, point) => acc + point.stopDurationMin, 0)
-  const duration = travelDuration + stopsDuration
-
-  const durationHours = Math.floor(duration / 60)
-  const durationMinutes = duration % 60
-
-  return {
-    raw: duration,
-    formatted: `${durationHours}h ${durationMinutes}m`,
-  }
-})
+const { totalDistanceKm, totalDurationMinutes } = getShipmentTotals(shipment)
 
 const date = useDate()
 
@@ -38,7 +18,7 @@ const startingTime = computed(() => {
 
 const arrivalTime = computed(() => {
   if (!shipment) return ''
-  const arrival = date.addMinutes(shipment.startingTime, totalDuration.value.raw)
+  const arrival = date.addMinutes(shipment.startingTime, totalDurationMinutes)
   return date.format(arrival, 'fullTime24h')
 })
 </script>
@@ -48,14 +28,14 @@ const arrivalTime = computed(() => {
     <VCard>
       <VCardTitle>Journey distance</VCardTitle>
       <VCardText class="text-h6 font-weight-bold text-secondary">
-        {{ totalDistance }} Km
+        {{ totalDistanceKm }} Km
       </VCardText>
     </VCard>
 
     <VCard>
       <VCardTitle>Estimated duration</VCardTitle>
       <VCardText class="text-h6 font-weight-bold text-secondary">
-        {{ totalDuration.formatted }}
+        {{ formatDuration(totalDurationMinutes) }}
       </VCardText>
     </VCard>
 
