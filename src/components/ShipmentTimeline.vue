@@ -63,7 +63,7 @@ const status = computed(() => {
   return SHIPMENT_STATUSES.toBeShipped
 })
 
-const truckPosition = computed(() => {
+const truckPositionPercent = computed(() => {
   if (simulatedTimeMinutes.value < startingTimeMinutes) return 0
 
   if (simulatedTimeMinutes.value >= arrivalTimeMinutes) return 100
@@ -109,6 +109,10 @@ const truckPosition = computed(() => {
 
   return 100
 })
+
+const truckPositionKm = computed(() => {
+  return Math.floor((truckPositionPercent.value * totalDistanceKm) / 100)
+})
 </script>
 
 <template>
@@ -133,11 +137,10 @@ const truckPosition = computed(() => {
 
       <template #text>
         <div class="visual-timeline">
-          <VIcon
-            icon="fa-truck"
-            class="visual-timeline__truck"
-            :style="{ left: `${truckPosition}%` }"
-          />
+          <div class="visual-timeline__truck" :style="{ left: `${truckPositionPercent}%` }">
+            <span>{{ truckPositionKm }} Km</span>
+            <VIcon icon="fa-truck" />
+          </div>
 
           <div class="visual-timeline__line"></div>
 
@@ -160,15 +163,27 @@ $timeline_spacer: 2rem;
 
 .visual-timeline {
   position: relative;
-  margin: $timeline_spacer;
+  margin: $timeline_spacer * 1.5 $timeline_spacer $timeline_spacer;
 
   &__truck {
     position: absolute;
     bottom: 100%;
     transform: translateX(-50%);
-    height: $timeline_spacer;
-    color: var(--color-primary);
-    font-size: 1rem;
+    text-align: center;
+
+    span {
+      display: block;
+      color: rgba(0, 0, 0, 0.6);
+      font-size: 0.75rem;
+      line-height: $timeline_spacer * 0.5;
+      white-space: nowrap;
+    }
+
+    i {
+      height: $timeline_spacer;
+      color: var(--color-primary);
+      font-size: 1rem;
+    }
   }
 
   &__line {
