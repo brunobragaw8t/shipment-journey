@@ -2,6 +2,7 @@
 import type { Shipment } from '@/api/shipments'
 import { shipmentsApi } from '@/api/shipments'
 import ShipmentDetails from '@/components/ShipmentDetails.vue'
+import ShipmentTimeline from '@/components/ShipmentTimeline.vue'
 import { onMounted } from 'vue'
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -47,6 +48,7 @@ onMounted(async () => {
 
   <template v-else>
     <h1 class="mb-4">Shipment details</h1>
-    <ShipmentDetails :shipment="shipment!" />
+    <ShipmentDetails :shipment="shipment!" class="mb-4" />
+    <ShipmentTimeline :shipment="shipment!" />
   </template>
 </template>
