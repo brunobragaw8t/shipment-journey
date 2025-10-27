@@ -9,6 +9,7 @@ import {
 } from '@/utils/shipments'
 import { calcTravelMinutes, formatMinutesToTime } from '@/utils/time'
 import { formatDuration } from '@/utils/time'
+import { shipmentsApi } from '@/api/shipments'
 
 const { shipment } = defineProps<{ shipment: Shipment }>()
 
@@ -40,7 +41,19 @@ const status = computed(() => {
   return SHIPMENT_STATUSES.toBeShipped
 })
 
-const pointPositions = getShipmentPointPositions(startingTimeMinutes, totalDistanceKm, shipment)
+const progress = computed(() =>
+  shipmentsApi.getShipmentProgress(shipment, simulatedTimeMinutes.value),
+)
+
+const pointPositions = computed(() =>
+  getShipmentPointPositions(
+    startingTimeMinutes,
+    totalDistanceKm,
+    shipment,
+    simulatedTimeMinutes.value,
+    progress.value,
+  ),
+)
 
 const truck = computed(() => {
   if (simulatedTimeMinutes.value < startingTimeMinutes) {
@@ -144,12 +157,10 @@ const truck = computed(() => {
             <span>{{ truck.positionKm }} Km</span>
 
             <span v-if="status.label === 'In transit'">
-              Time to next stop: {{ formatDuration(truck.timeRemainingMinutes) }}
+              ETA: {{ formatDuration(truck.timeRemainingMinutes) }}
             </span>
 
-            <span v-if="status.label === 'Stopped'">
-              Time to resume: {{ formatDuration(truck.timeRemainingMinutes) }}
-            </span>
+            <span v-if="status.label === 'Stopped'">Loading/Unloading</span>
 
             <VIcon icon="fa-truck" />
           </div>
@@ -176,7 +187,7 @@ $timeline_spacer: 2rem;
 
 .visual-timeline {
   position: relative;
-  margin: $timeline_spacer * 2 $timeline_spacer $timeline_spacer * 1.5;
+  margin: $timeline_spacer * 2 $timeline_spacer $timeline_spacer * 2;
 
   &__truck {
     position: absolute;
@@ -208,9 +219,9 @@ $timeline_spacer: 2rem;
     top: 100%;
     transform: translateX(-50%);
     margin-top: -1px;
+    width: 6.5rem;
     text-align: center;
     line-height: $timeline_spacer;
-    white-space: nowrap;
 
     &::before {
       content: '';
@@ -227,9 +238,8 @@ $timeline_spacer: 2rem;
     span {
       display: block;
       color: rgba(0, 0, 0, 0.6);
-      font-size: 0.75rem;
+      font-size: 0.625rem;
       line-height: $timeline_spacer * 0.5;
-      white-space: nowrap;
     }
   }
 }

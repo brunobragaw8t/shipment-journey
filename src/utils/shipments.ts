@@ -1,4 +1,4 @@
-import type { Shipment } from '@/api/shipments'
+import type { Shipment, ShipmentProgress } from '@/api/shipments'
 import { SHIPMENT_STATUSES, type ShipmentStatus } from '@/constants/shipment-statuses'
 import { calcTravelMinutes, formatMinutesToTime } from './time'
 
@@ -27,25 +27,51 @@ export function getShipmentPointPositions(
   startingTimeMinutes: number,
   totalDistanceKm: number,
   shipment: Shipment,
+  currentTimeMinutes: number,
+  progress: ShipmentProgress,
 ) {
   const positions: Record<number, { key: string | number; label: string; time: string }> = {}
 
   let position = 0
-  let time = startingTimeMinutes
 
   for (const point of shipment.path) {
-    let timeToDisplay = formatMinutesToTime(time)
+    const pointProgress = progress.find((p) => p.pointId === point.id)
 
-    if (point.distanceFromPreviousKm > 0) {
-      position += (point.distanceFromPreviousKm / totalDistanceKm) * 100
-      time += calcTravelMinutes(point.distanceFromPreviousKm, shipment.truckVelocityKmH)
-      timeToDisplay = formatMinutesToTime(time)
+    if (!pointProgress) {
+      throw new Error(`No progress found for point ${point.id}`)
     }
 
-    if (point.stopDurationMin > 0) {
-      time += point.stopDurationMin
-      timeToDisplay += ` - ${formatMinutesToTime(time)}`
+    const isFirstPoint = point.distanceFromPreviousKm === 0
+    const isLastPoint = point.id === shipment.path[shipment.path.length - 1]?.id
+
+    let timeToDisplay = ''
+
+    if (isFirstPoint && currentTimeMinutes < startingTimeMinutes) {
+      timeToDisplay = `Scheduled to ${formatMinutesToTime(startingTimeMinutes)}`
     }
+
+    if (isFirstPoint && currentTimeMinutes >= startingTimeMinutes) {
+      timeToDisplay = `Departed at ${formatMinutesToTime(startingTimeMinutes)}`
+    }
+
+    if (
+      !isFirstPoint &&
+      pointProgress.arrivalTimeMinutes !== null &&
+      currentTimeMinutes >= pointProgress.arrivalTimeMinutes
+    ) {
+      timeToDisplay = `Arrived at ${formatMinutesToTime(pointProgress.arrivalTimeMinutes)}`
+    }
+
+    if (
+      !isFirstPoint &&
+      !isLastPoint &&
+      pointProgress.departureTimeMinutes !== null &&
+      currentTimeMinutes >= pointProgress.departureTimeMinutes
+    ) {
+      timeToDisplay += `\nDeparted at ${formatMinutesToTime(pointProgress.departureTimeMinutes)}`
+    }
+
+    position += (point.distanceFromPreviousKm / totalDistanceKm) * 100
 
     positions[position] = {
       key: point.id,
